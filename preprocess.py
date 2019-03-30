@@ -96,7 +96,7 @@ def writeData(catName, dataArr, outDir, dataStep = 3):
             if (n>0):
                 outStr = "%s, %0.1f" % (outStr,dataArr[startPos+n])
             else:
-                outStr = "%0.1f" % dataArr[startPos+n]
+                outStr = "%s, %0.1f" % (catName,dataArr[startPos+n])
         f.write(outStr)
         f.write("\n")
         startPos += dataStep
