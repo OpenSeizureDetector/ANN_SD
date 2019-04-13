@@ -1,4 +1,4 @@
-#!/usr/bin/python
+#!/usr/bin/python3
 
 # Preprocess HMP dataset to 25 Hz sample rate (from the 32 Hz provided)
 # for compatibility with Garmin watch data.
@@ -9,7 +9,7 @@ import numpy as np
 import numpy.linalg as la
 import scipy.signal
 import matplotlib.pyplot as plt
-from imutils import paths
+#from imutils import paths
 
 RAW_FREQ = 32.  # Hz
 PROC_FREQ = 25.  # Hz
@@ -103,7 +103,10 @@ def writeData(catName, dataArr, outDir, dataStep = 3):
     f.close()
             
 
+print("preprocess body")
+    
 if (__name__ == "__main__"):
+    print("preprocess.main")
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--inDir", required=True,
@@ -119,7 +122,7 @@ if (__name__ == "__main__"):
 	            help="Plot the data as it is processed")
     args = vars(ap.parse_args())
 
-    print args
+    print(args)
 
     fileList = list(paths.list_files(args['inDir'],validExts=('.txt')))
 

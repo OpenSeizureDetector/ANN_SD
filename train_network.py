@@ -119,6 +119,11 @@ if (__name__ == "__main__"):
     label_train_bin = encoder.fit_transform(label_train)
     label_test_bin = encoder.fit_transform(label_test)
 
+    print(label_train_bin)
+    print(encoder.classes_)
+    #print(dir(label_train_bin))
+    exit(-1)
+
     if (args['plot']):
         # Plot 25 random datasets
         indices = np.random.randint(0, data_train.shape[0], size=25)
