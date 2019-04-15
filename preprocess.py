@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/python
 
 # Preprocess HMP dataset to 25 Hz sample rate (from the 32 Hz provided)
 # for compatibility with Garmin watch data.
@@ -9,7 +9,7 @@ import numpy as np
 import numpy.linalg as la
 import scipy.signal
 import matplotlib.pyplot as plt
-#from imutils import paths
+from imutils import paths
 
 RAW_FREQ = 32.  # Hz
 PROC_FREQ = 25.  # Hz
