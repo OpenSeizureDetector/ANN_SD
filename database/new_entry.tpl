@@ -1,3 +1,15 @@
+<head>
+  <link rel="stylesheet" type="text/css" href="static/style.css">
+  <nav class="nav_bar">
+    <ul>
+      <li><a href="/datasets">Datasets</a></li>
+      <li><a href="/new">Add Entry</a></li>
+      <li><a href="/delete">Delete Entry</a></li>
+    </ul>
+  </nav>
+</head>
+
+
 <body>
   <p>Add a new dataset to the database:</p>
 
@@ -23,38 +35,3 @@
   </form>
 </body>
 
-
-<style type="text/css">
-
-  .form-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    grid-gap: 1em;
-    align-items: top;
-    margin: 60px;
-    padding: 5px;
-}
-
-input {
-    grid-column: 2;
-    margin: 0;
-}
-
-label {
-    grid-column: 1/2;
-    width: auto;
-    margin: 0;
-    text-align: right;
-}
-
-p {
-    grid-column: 1/3;
-    text-align: center;
-    margin: 0px;
-}
-
-#save {
-    width: 15%;
-}
-
-</style>

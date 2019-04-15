@@ -1,5 +1,5 @@
 import sqlite3
-from bottle import route, run, debug, template, request
+from bottle import route, run, debug, template, request, static_file
 
 parameter_list = ['id', 'name', 'paper_url', 'data_url', 'sensor_pos', 'sample_freq']
 
@@ -35,10 +35,10 @@ def new_entry():
         new_sensor_pos = request.GET.sensor_pos.strip()
         new_sample_freq = int(request.GET.sample_freq.strip())
         
-        c.execute("INSERT INTO datasets ('name', 'paper_url', 'data_url', 'sensor_pos', 'sample_freq') VALUES ('new_name', 'new_paper_url', 'new_data_url', 'new_sensor_pos', 'new_sample_freq')")
+        c.execute("INSERT INTO datasets (name, paper_url, data_url, sensor_pos, sample_freq) VALUES (?,?,?,?,?)", (new_name, new_paper_url, new_data_url, new_sensor_pos, new_sample_freq))
         conn.commit()
         c.close()
-        return '<p>The new entry has been added to the database</p>'
+        return dataset_db()
 
     else:
         return template('new_entry.tpl')
@@ -58,13 +58,18 @@ def delete_entry():
         c.execute("DELETE FROM datasets WHERE id=?", (entry_to_del,))
         conn.commit()
         c.close()
-        return '<p>The entry has been deleted</p>'
-
+        return dataset_db()
+    
     else:
         return template('delete_entry.tpl')
     
+###############################
+#include css file
+###############################
 
-
+@route('/static/style.css')
+def static(style):
+    return static_file(style.css, root='./static')
 
 
 
