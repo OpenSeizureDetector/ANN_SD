@@ -65,6 +65,11 @@ if (__name__ == "__main__"):
     print args
 
     fileList = list(paths.list_files(args['inDir'],validExts=('.csv')))
+
+    if (len(fileList)==0):
+        print("***ERROR - No input files found ****")
+        exit(-1)
+        
     print(fileList)
 
     classArr = None

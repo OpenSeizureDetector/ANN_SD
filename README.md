@@ -34,3 +34,15 @@ collect enough seizure-like data to train it to detect that.
   *  Collect as much published, categorised accelerometer data as we can 
   together, and process it into a single dataset that is sampled at the same
   rate as we get from the OpenSeizureDetector watches..
+  *  Train a Neural Network Classifier with the data and check that we can 
+  detect the different classes of activity using it.
+  *  If the available data does not include falls, simulate many falls
+  and add the data from them to the dataset.
+  *  Check that we can detect falls reliably.
+  
+* Stage 2
+  *  Collect data from users, including real seizures, and convert it into a
+  classified dataset.
+  *  Extend the neural network to include the seizure data.
+  *  Tweak the neural network number of layers and size of layers to optimise
+  reliability.
