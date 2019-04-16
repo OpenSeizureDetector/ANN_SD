@@ -1,8 +1,8 @@
 <head>
-  <link rel="stylesheet" type="text/css" href="static/style.css">  
+  <link rel="stylesheet" type="text/css" href="/static/style.css">  
   <nav class="nav_bar">
     <ul>
-      <li><strong>Datasets</strong></li>
+      <li><strong><a href="#">Datasets</a></strong></li>
       <li><a href="/new">Add Entry</a></li>
       <li><a href="/delete">Delete Entry</a></li>
     </ul>

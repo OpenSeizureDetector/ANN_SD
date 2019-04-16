@@ -1,5 +1,5 @@
 import sqlite3
-from bottle import route, run, debug, template, request, static_file
+from bottle import route, run, debug, template, request, static_file, get
 
 parameter_list = ['id', 'name', 'paper_url', 'data_url', 'sensor_pos', 'sample_freq']
 
@@ -67,12 +67,10 @@ def delete_entry():
 #include css file
 ###############################
 
-@route('/static/style.css')
-def static(style):
-    return static_file(style.css, root='./static')
-
-
-
+@route('/static/<filename:path>')
+def send_css(filename):
+    print(filename)
+    return static_file(filename, root='static')
 
     
 debug(True)

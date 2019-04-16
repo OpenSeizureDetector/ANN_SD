@@ -1,9 +1,9 @@
 <head>
-  <link rel="stylesheet" type="text/css" href="static/style.css">
+  <link rel="stylesheet" type="text/css" href="/static/style.css">
   <nav class="nav_bar">
     <ul>
       <li><a href="/datasets">Datasets</a></li>
-      <li><a href="/new">Add Entry</a></li>
+      <li><a href="/new">Add Entry</a><x/li>
       <li><a href="/delete">Delete Entry</a></li>
     </ul>
   </nav>
