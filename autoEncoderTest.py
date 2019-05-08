@@ -25,6 +25,8 @@ import sklearn
 print(sklearn.__version__)
 from sklearn.model_selection import train_test_split
 import sklearn.preprocessing
+from sklearn.manifold import TSNE
+import pandas as pd
 
 import sys
 import platform
@@ -52,14 +54,14 @@ BATCH_SIZE = 128
 EPOCHS = 100
 LAYER_FILTERS = [32, 64] # No. of CNN layers and filters per layer
 KERNEL_SIZE = 3
-LATENT_DIM = 1
+LATENT_DIM = 2
 
 def logV(msg):
     if (DEBUG>=3):
         print(msg)
 
 
-def buildModel(inSize):
+def buildModel_f(inSize):
     """ Return a Keras Model to use for the autoencoder.
     It expects the model input to be a vector of size inSize.
     """
@@ -94,6 +96,23 @@ def buildModel(inSize):
     autoencoder.summary()
 
     return autoencoder
+
+def buildModel(inSize):
+    model = keras.models.Sequential()
+    model.add(keras.layers.Dense(LATENT_DIM,
+                                 input_dim=inSize,
+                                 activation='relu',
+                                 activity_regularizer=keras.regularizers.l1(10e-5),
+                                 name='latent'))
+    model.add(keras.layers.Dense(inSize, activation='relu'))
+    model.summary()
+    return model
+
+def getEncoderOutput(model, testData):
+    encoder = keras.models.Model(inputs=model.input,
+                                 outputs=model.get_layer('latent').output)
+    encOutput = encoder.predict(testData)
+    return encOutput
 
 def getData(fHandle):
     """ Reads one line of accelerometer data from the open file
@@ -216,6 +235,21 @@ if (__name__ == "__main__"):
                   batch_size = BATCH_SIZE,
                   shuffle = True)
         logV("Done!")
+
+        encOut = getEncoderOutput(model,allDataArr)
+
+        print(encOut)
+        fig, ax = plt.subplots()
+        ax.scatter(encOut[:,0], encOut[:,1])
+        plt.show()
+        
+        tsne_model = TSNE(n_components=2, verbose=1, random_state=0)
+        tsneData = tsne_model.fit_transform(encOut)
+        print(tsneData)
+        fig, ax = plt.subplots()
+        ax.scatter(tsneData[:,0], tsneData[:,1])
+        plt.show()
+        
 
     else:
         print("readFile: ERROR - %s does not exist" % fname)
