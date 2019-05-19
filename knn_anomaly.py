@@ -8,8 +8,9 @@ import argparse
 import numpy as np
 # import numpy.linalg as la
 # import scipy.signal
+import sklearn.decomposition
 import matplotlib.pyplot as plt
-
+from mpl_toolkits.mplot3d import Axes3D  # noqa: F401 unused import
 import sys
 import platform
 print("Running Python%s - V %s" %
@@ -81,54 +82,123 @@ def buildRawArr(fname, nSamp = 125):
                 rawArr.append(sampArr)
 
         print("End of File")
+        fHandle.close()
         return(rawArr)
 
     else:
         print("readFile: ERROR - %s does not exist" % fname)
         exit(-1)
 
+def processOsdFile(fname, nSamp):
+    """ Processes an OpenSeizureDetector DataLog file, splits it into periods of
+    length nSamp samples, and calculates the power spectrum of the data for each period.
+    It returns 3 numpy arrays timeArr, which is the data times, hrArr which is measured heart
+    rate, accArr which is the raw acceleration data, and fftArr which is the spectral power
+    of the accelerometer data.
+    """
+    print("processOsdFile(%s, %d)" % (fname, nSamp))
+    rawArr = buildRawArr(fname, nSamp=25)
+    rawArr = np.asarray(rawArr)
 
+    print("rawArr", rawArr, rawArr.shape, rawArr.dtype, rawArr[0, 0].dtype)
+
+    accArr = rawArr[:, 2:].astype(np.float)
+    hrArr = rawArr[:, 1].astype(np.float)
+    timeArr = rawArr[:, 0]
+
+    
+    # Calculate the FFT of all of the acceleration samples
+    fftArr = np.fft.fft(accArr)
+    fftFreq = np.fft.fftfreq(fftArr.shape[-1], 1.0/SAMPLE_FREQ)
+    fftLen = int(fftArr.shape[-1]/2)
+    fftArr = fftArr[:, 1:fftLen]
+    fftFreq = fftFreq[1:fftLen]
+
+    return timeArr, hrArr, accArr, fftArr, fftFreq
 
 if (__name__ == "__main__"):
     # construct the argument parse and parse the arguments
     ap = argparse.ArgumentParser()
     ap.add_argument("-i", "--inFile", required=True,
                     help="input data file")
+    ap.add_argument("-t", "--testFile", required=False, default=None,
+                    help="test data file")
+    ap.add_argument("-n", "--nSamp", required=False, default=25,
+                    help="numper of data points to use per sample")
+    ap.add_argument("-f", "--freq", required=False, default=25.0,
+                    help="sample frequency in input data file")
     ap.add_argument("-p", "--plot", dest='plot', action='store_true',
                     help="Plot the data as it is processed")
     args = vars(ap.parse_args())
 
     print(args)
     fname = args['inFile']
+    nSamp = int(args['nSamp'])
 
-    rawArr = buildRawArr(fname, nSamp=25)
-    rawArr = np.asarray(rawArr)
+    timeArr, hrArr, accArr, fftArr, fftFreq = processOsdFile(fname, nSamp)
+    print("accArr", accArr.shape, accArr.dtype, accArr[0, 0].dtype)
+    print("fftArr", fftArr.shape)
+    print("fftFreq", fftFreq, fftFreq.shape)
 
-    print(rawArr, rawArr.shape, rawArr.dtype, rawArr[0, 0].dtype)
+    if (args['testFile']is not None):
+        testTimeArr, testHrArr, testAccArr, testFftArr, testFftFreq \
+            = processOsdFile(args['testFile'], nSamp)
 
-    # Calculate the FFT of all of the 
-    fftArr = np.fft.fft(rawArr[:, 2:])
-    fftFreq = np.fft.fftfreq(fftArr.shape[-1], 1.0/SAMPLE_FREQ)
-    fftLen = int(fftArr.shape[-1]/2)
 
-    print(fftArr, fftArr.shape)
-    print(fftFreq, fftFreq.shape)
-    print(fftLen)
+    # n = 0
+    # for row in accArr:
+    #     print(n, row)
+    #     n += 1
 
-    n = 0
-    for row in rawArr:
-        print(n, row)
-        n += 1
+    nPlots = 2
+    # Plot nPlots random samples
+    fig, ax = plt.subplots(nPlots, 2)
+    for n in range(0, nPlots):
+        recNo = np.random.randint(0, accArr.shape[0])
+        print("Plotting Record Number %d: " % recNo, accArr[recNo, :])
+        xvals = np.arange(0, accArr.shape[-1])
+        ax[n, 0].plot(xvals, accArr[recNo, :])
+        ax[n, 0].set_title = "Rcec %d" % recNo
 
-    recNo = 22164
-    print(rawArr[recNo, 2:2].dtype)
-    fig, ax = plt.subplots(2, 1)
-    ax[0].plot(rawArr[recNo, 2:])
-    
-    # Plot fft, but chop off large DC term, and the negative frequency part.
-    ax[1].plot(fftFreq[1:fftLen],
-               np.absolute(fftArr[recNo, 1:fftLen]))
+        # Plot fft, but chop off large DC term, and the neg. frequency part.
+        ax[n, 1].plot(fftFreq,
+                      np.absolute(fftArr[recNo, :]))
     plt.show()
 
 
+    nPlots = 2
+    # Plot nPlots random samples
+    fig, ax = plt.subplots(nPlots, 2)
+    for n in range(0, nPlots):
+        recNo = np.random.randint(0, testAccArr.shape[0])
+        print("Plotting Record Number %d: " % recNo, testAccArr[recNo, :])
+        xvals = np.arange(0, testAccArr.shape[-1])
+        ax[n, 0].plot(xvals, testAccArr[recNo, :])
+        ax[n, 0].set_title = "Rcec %d" % recNo
 
+        # Plot fft, but chop off large DC term, and the neg. frequency part.
+        ax[n, 1].plot(testFftFreq,
+                      np.absolute(testFftArr[recNo, :]))
+    plt.show()
+
+    # Now collapse all the data down into three dimensions (Rather than 10)
+    # so we can plot it and see what it looks like.
+
+    fig = plt.figure(1, figsize=(8, 6))
+    ax = Axes3D(fig, elev=-120, azim=140)
+    pca = sklearn.decomposition.PCA(n_components=3)
+    X_reduced = pca.fit_transform(np.absolute(fftArr))
+    X_test = pca.transform(np.absolute(testFftArr))
+    ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c="blue",
+               cmap=plt.cm.Set1, edgecolor='k', s=5)
+    ax.scatter(X_test[:, 0], X_test[:, 1], X_test[:, 2], c="red",
+               cmap=plt.cm.Set1, edgecolor='red', s=40)
+    ax.set_title("First three PCA directions")
+    ax.set_xlabel("1st eigenvector")
+    ax.w_xaxis.set_ticklabels([])
+    ax.set_ylabel("2nd eigenvector")
+    ax.w_yaxis.set_ticklabels([])
+    ax.set_zlabel("3rd eigenvector")
+    ax.w_zaxis.set_ticklabels([])
+
+    plt.show()
