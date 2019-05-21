@@ -228,7 +228,7 @@ if (__name__ == "__main__"):
     print("Plotting normal data points ", X_reduced.shape)
     print("Plotting test data points", X_test.shape)
     ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c="blue",
-               cmap=plt.cm.Set1, edgecolor='k', s=5)
+               cmap=plt.cm.Set1, edgecolor='blue', s=1)
     ax.scatter(X_test[:, 0], X_test[:, 1], X_test[:, 2], c="red",
                cmap=plt.cm.Set1, edgecolor='red', s=40)
     ax.set_title("First three PCA directions")
