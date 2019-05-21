@@ -107,6 +107,12 @@ def processOsdFile(fname, nSamp):
     print("rawArr", rawArr, rawArr.shape, rawArr.dtype, rawArr[0, 0].dtype)
 
     accArr = rawArr[:, 2:].astype(np.float)
+    # Remove the DC offset from the acceleration readings
+    rowMeans = accArr.mean(axis=1)
+    print("rowMeans=",rowMeans)
+    rowMeans = rowMeans.reshape((accArr.shape[0],1))
+    accArr = accArr - rowMeans
+    print("rowMeans ", accArr.mean(axis=1))
     hrArr = rawArr[:, 1].astype(np.float)
     timeArr = rawArr[:, 0]
 
