@@ -18,9 +18,8 @@ print("Running Python%s - V %s" %
 if sys.version_info[0] < 3:
     raise Exception("Must be using Python 3")
 
-
-
 SAMPLE_FREQ = 25.  # Hz
+
 
 def getData(fHandle):
     """ Reads one line of accelerometer data from the open file
@@ -46,11 +45,11 @@ def getData(fHandle):
     return timeStr, hr, accArr
 
 
-def buildRawArr(fname, nSamp = 125):
+def buildRawArr(fname, nSamp=125):
     """ makes a raw input data array from the OpenSeizureDetector
-    data log file fname.   
+    data log file fname.
     The output array is one row per sample, and each row is a list
-    consisting of the time, heart rate, 
+    consisting of the time, heart rate,
     followed by nSamp data points as read from the file.
     """
     if (os.path.exists(fname)):
@@ -90,11 +89,16 @@ def buildRawArr(fname, nSamp = 125):
         exit(-1)
 
 def processOsdFile(fname, nSamp):
-    """ Processes an OpenSeizureDetector DataLog file, splits it into periods of
-    length nSamp samples, and calculates the power spectrum of the data for each period.
-    It returns 3 numpy arrays timeArr, which is the data times, hrArr which is measured heart
-    rate, accArr which is the raw acceleration data, and fftArr which is the spectral power
-    of the accelerometer data.
+    """ Processes an OpenSeizureDetector DataLog file, splits it into
+    periods of length nSamp samples, and calculates the power spectrum
+    of the data for each period.
+    It returns 3 numpy arrays:
+            timeArr, which is the data times,
+            hrArr which is measured heart rate,
+            accArr which is the raw acceleration data,
+            fftArr which is the spectral power of the accelerometer data.
+            fftFreq is the frequencies in fftArr, based on the SAMPLE_FREQ
+                    global value.
     """
     print("processOsdFile(%s, %d)" % (fname, nSamp))
     rawArr = buildRawArr(fname, nSamp=25)
@@ -106,7 +110,6 @@ def processOsdFile(fname, nSamp):
     hrArr = rawArr[:, 1].astype(np.float)
     timeArr = rawArr[:, 0]
 
-    
     # Calculate the FFT of all of the acceleration samples
     fftArr = np.fft.fft(accArr)
     fftFreq = np.fft.fftfreq(fftArr.shape[-1], 1.0/SAMPLE_FREQ)
@@ -115,6 +118,7 @@ def processOsdFile(fname, nSamp):
     fftFreq = fftFreq[1:fftLen]
 
     return timeArr, hrArr, accArr, fftArr, fftFreq
+
 
 if (__name__ == "__main__"):
     # construct the argument parse and parse the arguments
@@ -135,7 +139,38 @@ if (__name__ == "__main__"):
     fname = args['inFile']
     nSamp = int(args['nSamp'])
 
-    timeArr, hrArr, accArr, fftArr, fftFreq = processOsdFile(fname, nSamp)
+    firstFile = True
+    if (os.path.isdir(fname)):
+        print("inFile is a directory - reading all files in the folder")
+        print("FIXME - THIS DOESN'T WORK YET")
+        for root, dirs, files in os.walk(fname):
+            print("walk: ", root, dirs, files)
+            for inFname in files:
+                fn, ext = os.path.splitext(inFname)
+                if (ext == ".csv"):
+                    print("processing %s in directory %s" % (inFname, root))
+                    tArr, hArr, aArr, fArr, qArr = processOsdFile(
+                        os.path.join(root, inFname), nSamp)
+                    if (firstFile):
+                        timeArr = tArr
+                        hrArr = hArr
+                        accArr = aArr
+                        fftArr = fArr
+                        fftFreq = qArr
+                        firstFile = False
+                    else:
+                        print("timeArr", timeArr.shape, "tArr", tArr.shape)
+                        timeArr = np.concatenate((timeArr, tArr))
+                        print("timeArr", timeArr.shape, "tArr", tArr.shape)
+                        hrArr = np.concatenate((hrArr,   hArr))
+                        print("accArr", accArr.shape, "aArr", aArr.shape)
+                        accArr = np.vstack((accArr,  aArr))
+                        print("accArr", accArr.shape, "aArr", aArr.shape)
+                        print("fftArr", fftArr.shape, "fArr", fArr.shape)
+                        fftArr = np.vstack((fftArr,  fArr))
+                        print("fftArr", fftArr.shape, "fArr", fArr.shape)
+    else:
+        timeArr, hrArr, accArr, fftArr, fftFreq = processOsdFile(fname, nSamp)
     print("accArr", accArr.shape, accArr.dtype, accArr[0, 0].dtype)
     print("fftArr", fftArr.shape)
     print("fftFreq", fftFreq, fftFreq.shape)
@@ -155,7 +190,8 @@ if (__name__ == "__main__"):
     fig, ax = plt.subplots(nPlots, 2)
     for n in range(0, nPlots):
         recNo = np.random.randint(0, accArr.shape[0])
-        print("Plotting Record Number %d: " % recNo, accArr[recNo, :])
+        print("Sample Normal Data: Plotting Record Number %d: "
+              % recNo, accArr[recNo, :])
         xvals = np.arange(0, accArr.shape[-1])
         ax[n, 0].plot(xvals, accArr[recNo, :])
         ax[n, 0].set_title = "Rcec %d" % recNo
@@ -165,13 +201,13 @@ if (__name__ == "__main__"):
                       np.absolute(fftArr[recNo, :]))
     plt.show()
 
-
     nPlots = 2
     # Plot nPlots random samples
     fig, ax = plt.subplots(nPlots, 2)
     for n in range(0, nPlots):
         recNo = np.random.randint(0, testAccArr.shape[0])
-        print("Plotting Record Number %d: " % recNo, testAccArr[recNo, :])
+        print("Plotting test data: Record Number %d: " %
+              recNo, testAccArr[recNo, :])
         xvals = np.arange(0, testAccArr.shape[-1])
         ax[n, 0].plot(xvals, testAccArr[recNo, :])
         ax[n, 0].set_title = "Rcec %d" % recNo
@@ -189,6 +225,8 @@ if (__name__ == "__main__"):
     pca = sklearn.decomposition.PCA(n_components=3)
     X_reduced = pca.fit_transform(np.absolute(fftArr))
     X_test = pca.transform(np.absolute(testFftArr))
+    print("Plotting normal data points ", X_reduced.shape)
+    print("Plotting test data points", X_test.shape)
     ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c="blue",
                cmap=plt.cm.Set1, edgecolor='k', s=5)
     ax.scatter(X_test[:, 0], X_test[:, 1], X_test[:, 2], c="red",
