@@ -1,0 +1,24 @@
+31-03-2019 09:36:00 09:36:30 Climb Stairs
+31-03-2019 09:36:30 09:37:00 Descend Stairs
+31-03-2019 09:38:00 09:39:30 Jog up and down stairs
+31-03-2019 09:40:30 09:43:00 Brush Teeth (electric) 
+31-03-2019 09:43:50 09:44:50 Brush Teeth (manual) 
+31-03-2019 09:45:50 09:47:50 Shave (electric)
+31-03-2019 09:49:30 09:50:40 Dressing
+31-03-2019 09:51:00 09:51:15 Comb Hair
+31-03-2019 09:52:00 09:53:00 Sit-Stand
+31-03-2019 09:54:00 09:55:00 Putting things in cupboards
+31-03-2019 09:58:00 10:05:00 Getting B Ready
+31-03-2019 10:05:00 10:07:00 Pumping Tyre
+31-03-2019 10:08:00 10:25:00 Driving
+31-03-2019 11:25:00 11:44:00 Driving
+31-03-2019 12:01:00 12:20:00 Preparing Food
+31-03-2019 12:21:00 12:38:00 Eating Food
+
+20-05-2019 05:20:00  Get Up and Make Breakfast
+20-05-2019 05:45:00  Eat Breakfast
+20-05-2019 06:30:00  Getting Benjamin ready (but arm a bit shaky sitting on loo and set of alarm)
+20-05-2019 07:00:00  Making Benjamin's packed lunch
+20-05-2019 07:30:00  Drive to work
+20-05-2019 08:00:00  on - at work typing plus lab work.
+
