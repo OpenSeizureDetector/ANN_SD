@@ -20,7 +20,6 @@ if sys.version_info[0] < 3:
 
 SAMPLE_FREQ = 25.  # Hz
 
-
 def getData(fHandle):
     """ Reads one line of accelerometer data from the open file
     fHandle.   Returns an array of accelerometer data and a string
@@ -139,11 +138,18 @@ if (__name__ == "__main__"):
                     help="sample frequency in input data file")
     ap.add_argument("-p", "--plot", dest='plot', action='store_true',
                     help="Plot the data as it is processed")
+    ap.add_argument("-d", "--dims", required=False, default=2,
+                    help="Number of dimensions for PCA analysis (2 or 3)")
     args = vars(ap.parse_args())
 
     print(args)
     fname = args['inFile']
     nSamp = int(args['nSamp'])
+    nDims = int(args['dims'])
+
+    if (nDims!=2 and nDims!=3):
+        print("ERROR:  dims must be either 2 or 3")
+        exit(-1)
 
     firstFile = True
     if (os.path.isdir(fname)):
@@ -226,23 +232,37 @@ if (__name__ == "__main__"):
     # Now collapse all the data down into three dimensions (Rather than 10)
     # so we can plot it and see what it looks like.
 
-    fig = plt.figure(1, figsize=(8, 6))
-    ax = Axes3D(fig, elev=-120, azim=140)
-    pca = sklearn.decomposition.PCA(n_components=3)
-    X_reduced = pca.fit_transform(np.absolute(fftArr))
-    X_test = pca.transform(np.absolute(testFftArr))
-    print("Plotting normal data points ", X_reduced.shape)
-    print("Plotting test data points", X_test.shape)
-    ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c="blue",
-               cmap=plt.cm.Set1, edgecolor='blue', s=1)
-    ax.scatter(X_test[:, 0], X_test[:, 1], X_test[:, 2], c="red",
-               cmap=plt.cm.Set1, edgecolor='red', s=40)
-    ax.set_title("First three PCA directions")
-    ax.set_xlabel("1st eigenvector")
-    ax.w_xaxis.set_ticklabels([])
-    ax.set_ylabel("2nd eigenvector")
-    ax.w_yaxis.set_ticklabels([])
-    ax.set_zlabel("3rd eigenvector")
-    ax.w_zaxis.set_ticklabels([])
-
+    if (nDims==3):
+        fig = plt.figure(1, figsize=(8, 6))
+        ax = Axes3D(fig, elev=-120, azim=140)
+        pca = sklearn.decomposition.PCA(n_components=3)
+        X_reduced = pca.fit_transform(np.absolute(fftArr))
+        X_test = pca.transform(np.absolute(testFftArr))
+        print("Plotting normal data points ", X_reduced.shape)
+        print("Plotting test data points", X_test.shape)
+        ax.scatter(X_reduced[:, 0], X_reduced[:, 1], X_reduced[:, 2], c="blue",
+                   cmap=plt.cm.Set1, edgecolor='blue', s=1)
+        ax.scatter(X_test[:, 0], X_test[:, 1], X_test[:, 2], c="red",
+                   cmap=plt.cm.Set1, edgecolor='red', s=40)
+        ax.set_title("First three PCA directions")
+        ax.set_xlabel("1st eigenvector")
+        ax.w_xaxis.set_ticklabels([])
+        ax.set_ylabel("2nd eigenvector")
+        ax.w_yaxis.set_ticklabels([])
+        ax.set_zlabel("3rd eigenvector")
+        ax.w_zaxis.set_ticklabels([])
+    else:
+        # Plot 2d PCA
+        fig, ax = plt.subplots(1)
+        pca = sklearn.decomposition.PCA(n_components=2)
+        X_reduced = pca.fit_transform(np.absolute(fftArr))
+        X_test = pca.transform(np.absolute(testFftArr))
+        print("Plotting normal data points ", X_reduced.shape)
+        print("Plotting test data points", X_test.shape)
+        ax.scatter(X_reduced[:, 0], X_reduced[:, 1], c="blue",
+                   cmap=plt.cm.Set1, edgecolor='blue', s=1)
+        ax.scatter(X_test[:, 0], X_test[:, 1], c="red",
+                   cmap=plt.cm.Set1, edgecolor='red', s=20)
+        ax.set_title("First two PCA directions")
+        
     plt.show()
