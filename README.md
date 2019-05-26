@@ -78,4 +78,13 @@ I think we knew that it was difficult!  We had similar results when we
 removed the zero offset (gravity) from the seizure data too.
 ![PCA_1.png - Results from PCA analysis of normal and simulated seizures](https://raw.githubusercontent.com/OpenSeizureDetector/ANN_SD/master/TestData/Results/PCA_1.png)
 
+LDA
+===
+I have had a look at using LDA (Linear Determinant Analysis), but this seems
+to only be a valid way of dimension reduction in a multi-class situation.
+At best we only have two classes 'normal' and 'seizure' - I couldn't get it
+to make a 2d plot for me.
 
+KernelPCA
+=========
+KernelPCA is a non-linear version of PCA, so try that next.
