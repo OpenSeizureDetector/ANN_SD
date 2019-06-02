@@ -88,3 +88,9 @@ to make a 2d plot for me.
 KernelPCA
 =========
 KernelPCA is a non-linear version of PCA, so try that next.
+
+
+Neural Network Gotchas (however you spell that)
+======================
+ * Relu activation will not give negative output, so you have to use something
+   like tanh which gives -1 to +1 output.
