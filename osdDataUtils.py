@@ -42,22 +42,25 @@ def getDataPoint(fHandle):
     of the time of the data.
     @returns timeStr, accArr
     """
+    alarmStateCol = 14
+    hrCol = 15
     accStartCol = 16
     accNumSamp = 125
-    hrCol = 15
 
     accArr = []
     timeStr = ""
+    alarmStateStr = ""
     hr = -1
     lineStr = fHandle.readline()
     if (lineStr != ""):
         lParts = lineStr.split(",")
         timeStr = lParts[0]
+        alarmStateStr = lParts[alarmStateCol]
         hr = float(lParts[hrCol])
         for i in range(accStartCol, accStartCol+accNumSamp):
             accArr.append(float(lParts[i]))
         # print("accArr: ",accArr)
-    return timeStr, hr, accArr
+    return timeStr, alarmStateStr, hr, accArr
 
 
 def readOsdFile(fname, nSamp=125):
@@ -75,7 +78,7 @@ def readOsdFile(fname, nSamp=125):
         while (tStr != ""):  # Detect end of file
             # Read 1 row of data from teh input file and add it onto the
             # end of our data Array.
-            tStr, hr, dArr = getDataPoint(fHandle)
+            tStr, alarmStateStr, hr, dArr = getDataPoint(fHandle)
             # print(tStr, dArr)
             dataArr.extend(dArr)
             # print(tStr,len(dataArr))
@@ -86,6 +89,7 @@ def readOsdFile(fname, nSamp=125):
             while(len(dataArr) >= nSamp):
                 sampArr = []
                 sampArr.append(tStr)
+                sampArr.append(alarmStateStr)
                 sampArr.append(hr)
                 # print("len(samp)=%d, len(dataArr)=%d"
                 #     % (len(sampArr),len(dataArr)))
@@ -121,15 +125,16 @@ def processOsdFile(fname, nSamp):
 
     #print("rawArr", rawArr, rawArr.shape, rawArr.dtype, rawArr[0, 0].dtype)
 
-    accArr = rawArr[:, 2:].astype(np.float)
+    accArr = rawArr[:, 3:].astype(np.float)
     # Remove the DC offset from the acceleration readings
     rowMeans = accArr.mean(axis=1)
     #print("rowMeans=",rowMeans)
     rowMeans = rowMeans.reshape((accArr.shape[0],1))
     accArr = accArr - rowMeans
     #print("rowMeans ", accArr.mean(axis=1))
-    hrArr = rawArr[:, 1].astype(np.float)
+    hrArr = rawArr[:, 2].astype(np.float)
     timeArr = rawArr[:, 0]
+    alarmStateArr = rawArr[:,1]
 
     # Calculate the FFT of all of the acceleration samples
     fftArr = np.fft.fft(accArr)
@@ -138,23 +143,30 @@ def processOsdFile(fname, nSamp):
     fftArr = fftArr[:, 1:fftLen]
     fftFreq = fftFreq[1:fftLen]
 
-    return timeArr, hrArr, accArr, fftArr, fftFreq
+    return timeArr, alarmStateArr, hrArr, accArr, fftArr, fftFreq
 
 
 def getOsdData(fname, nSamp):
     firstFile = True
+    if (not os.path.exists(fname)):
+        print("ERROR: %s does not exist" % fname)
+        exit(-1)
+    else:
+        print("getOsdData - %s exists" % fname)
+        
     if (os.path.isdir(fname)):
-        print("inFile is a directory - reading all files in the folder")
+        print("%s is a directory - reading all files in the folder" % fname)
         for root, dirs, files in os.walk(fname):
             print("walk: ", root, dirs, files)
             for inFname in files:
                 fn, ext = os.path.splitext(inFname)
                 if (ext == ".csv"):
                     print("processing %s in directory %s" % (inFname, root))
-                    tArr, hArr, aArr, fArr, qArr = processOsdFile(
+                    tArr, almArr, hArr, aArr, fArr, qArr = processOsdFile(
                         os.path.join(root, inFname), nSamp)
                     if (firstFile):
                         timeArr = tArr
+                        alarmStateArr = almArr
                         hrArr = hArr
                         accArr = aArr
                         fftArr = fArr
@@ -163,6 +175,7 @@ def getOsdData(fname, nSamp):
                     else:
                         #print("timeArr", timeArr.shape, "tArr", tArr.shape)
                         timeArr = np.concatenate((timeArr, tArr))
+                        alarmStateArr = np.concatenate((alarmStateArr, almArr))
                         #print("timeArr", timeArr.shape, "tArr", tArr.shape)
                         hrArr = np.concatenate((hrArr,   hArr))
                         #print("accArr", accArr.shape, "aArr", aArr.shape)
@@ -172,18 +185,19 @@ def getOsdData(fname, nSamp):
                         fftArr = np.vstack((fftArr,  fArr))
                         #print("fftArr", fftArr.shape, "fArr", fArr.shape)
     else:
-        timeArr, hrArr, accArr, fftArr, fftFreq \
+        timeArr, alarmStateArr, hrArr, accArr, fftArr, fftFreq \
             = processOsdFile(fname, nSamp)
     # print("accArr", accArr.shape, accArr.dtype, accArr[0, 0].dtype)
     # print("fftArr", fftArr.shape)
     # print("fftFreq", fftFreq, fftFreq.shape)
 
-    return timeArr, hrArr, accArr, fftArr, fftFreq
+    return timeArr, alarmStateArr, hrArr, accArr, fftArr, fftFreq
 
 
 if (__name__ == "__main__"):
     print("osdDataUtils");
-    timeArr, hrArr, accArr, fftArr, fftFreq = getOsdData("TestData/Normal",25)
+    timeArr, alarmStateArr, hrArr, \
+        accArr, fftArr, fftFreq = getOsdData("TestData/Normal",25)
 
     print("accArr", accArr.shape, accArr.dtype, accArr[0, 0].dtype)
     print("fftArr", fftArr.shape)

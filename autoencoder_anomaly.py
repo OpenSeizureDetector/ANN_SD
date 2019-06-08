@@ -63,19 +63,19 @@ def buildModel(inSize):
     model.add(keras.layers.Dense(inSize,
                                   input_dim=inSize,
                                   activation='relu'))
-    model.add(keras.layers.Dense(LATENT_DIM*4,
-                                  activation='relu'))
-    model.add(keras.layers.Dense(LATENT_DIM*2,
+    # model.add(keras.layers.Dense(LATENT_DIM*4,
+    #                               activation='relu'))
+    model.add(keras.layers.Dense(LATENT_DIM/2,
                                   activation='relu'))
     model.add(keras.layers.Dense(LATENT_DIM,
                                  input_dim=inSize,
                                  activation='relu',
                                  activity_regularizer=keras.regularizers.l1(10e-5),
                                  name='latent'))
-    model.add(keras.layers.Dense(LATENT_DIM*2,
+    model.add(keras.layers.Dense(LATENT_DIM/2,
                                  activation='relu'))
-    model.add(keras.layers.Dense(LATENT_DIM*4,
-                                 activation='relu'))
+    # model.add(keras.layers.Dense(LATENT_DIM*4,
+    #                              activation='relu'))
     model.add(keras.layers.Dense(inSize, activation='relu'))
     model.summary()
     return model
